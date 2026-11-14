@@ -1,0 +1,53 @@
+﻿@model Flash_Lector.ViewModels.InicioSesionViewModel
+@{
+    ViewData["Title"] = "Ingresar";
+    Layout = null;
+}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Ingresar · Flash Lector</title>
+    <link rel="stylesheet" href="~/css/site.css">
+</head>
+<body>
+    <main class="access">
+        <section class="access-brand">
+            <b>FLASH LECTOR</b>
+            <div>
+                <span class="eyebrow">Biblioteca virtual TEINCO</span>
+                <h1>Todo lo que quieres leer, en un solo lugar.</h1>
+                <p>Conecta con ideas, historias y conocimiento.</p>
+            </div>
+        </section>
+
+        <section class="access-panel">
+            <form asp-action="Login" class="access-card">
+                <span class="eyebrow">Te damos la bienvenida</span>
+                <h2>Ingresa a tu cuenta</h2>
+
+                <div asp-validation-summary="ModelOnly" class="validation"></div>
+
+                <label>
+                    Correo
+                    <input asp-for="Correo" placeholder="nombre@teinco.edu.co">
+                </label>
+
+                <label>
+                    Contraseña
+                    <input asp-for="Contrasena">
+                </label>
+
+                <label class="check">
+                    <input asp-for="Recordarme"> Recordarme
+                </label>
+
+                <button class="button">Ingresar</button>
+
+                <p>¿No tienes cuenta? <a asp-action="Register">Regístrate</a></p>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,107 @@
+﻿@using Flash_Lector.Models
+@model IReadOnlyCollection<Obra>
+@{
+    ViewData["Title"] = "Administración";
+    var solicitudes = (List<SolicitudRol>)ViewBag.Solicitudes;
+}
+
+<span class="eyebrow">Panel de control</span>
+<h1>Administración</h1>
+
+<div class="stats">
+    <article>
+        <b>@ViewBag.RolesPendientes</b>
+        <span>Solicitudes de rol</span>
+    </article>
+    <article>
+        <b>@ViewBag.ObrasPendientes</b>
+        <span>Obras por revisar</span>
+    </article>
+    <article>
+        <b>@ViewBag.Usuarios</b>
+        <span>Usuarios</span>
+    </article>
+</div>
+
+<h2>Solicitudes de rol de autor</h2>
+@if (solicitudes.Count == 0)
+{
+    <p>No hay solicitudes pendientes.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in solicitudes)
+            {
+                <tr>
+                    <td>@s.Usuario.Correo</td>
+                    <td>@s.RolSolicitado</td>
+                    <td>
+                        <div class="actions">
+                            <form asp-action="ResolverRol" method="post">
+                                <input type="hidden" name="id" value="@s.Id">
+                                <input type="hidden" name="aprobar" value="true">
+                                <button class="button">Aprobar</button>
+                            </form>
+                            <form asp-action="ResolverRol" method="post">
+                                <input type="hidden" name="id" value="@s.Id">
+                                <input type="hidden" name="aprobar" value="false">
+                                <button class="button secondary">Rechazar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2>Obras</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Obra</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var obra in Model)
+        {
+            <tr>
+                <td>@obra.Titulo</td>
+                <td>@obra.Categoria.Nombre</td>
+                <td>@obra.Estado</td>
+                <td>
+                    <div class="actions">
+                        @if (obra.Estado != EstadoPublicacion.Publicada)
+                        {
+                            <form asp-action="CambiarEstado" method="post">
+                                <input type="hidden" name="id" value="@obra.Id">
+                                <input type="hidden" name="estado" value="@EstadoPublicacion.Publicada">
+                                <button class="button">Publicar</button>
+                            </form>
+                        }
+                        @if (obra.Estado != EstadoPublicacion.Rechazada)
+                        {
+                            <form asp-action="CambiarEstado" method="post">
+                                <input type="hidden" name="id" value="@obra.Id">
+                                <input type="hidden" name="estado" value="@EstadoPublicacion.Rechazada">
+                                <button class="button secondary">Rechazar</button>
+                            </form>
+                        }
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,34 @@
+﻿@model Flash_Lector.ViewModels.RegistroViewModel
+@{
+    ViewData["Title"] = "Registro";
+}
+<section class="form-panel">
+    <span class="eyebrow">Crea tu cuenta</span>
+    <h1>Empieza a leer</h1>
+
+    <form asp-action="Registro" method="post">
+        <div asp-validation-summary="ModelOnly" class="validation"></div>
+
+        <label>
+            Nombre
+            <input asp-for="Nombres">
+        </label>
+
+        <label>
+            Apellido
+            <input asp-for="Apellidos">
+        </label>
+
+        <label>
+            Correo
+            <input asp-for="Correo">
+        </label>
+
+        <label>
+            Contraseña
+            <input asp-for="Contrasena">
+        </label>
+
+        <button class="button">Crear cuenta</button>
+    </form>
+</section>
