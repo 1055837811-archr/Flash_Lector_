@@ -1,0 +1,28 @@
+﻿@using Flash_Lector.Models
+@model IReadOnlyCollection<Obra>
+@{
+    ViewData["Title"] = "Catálogo";
+}
+
+<div class="page-head">
+    <div>
+        <span class="eyebrow">Biblioteca digital</span>
+        <h1>Catálogo</h1>
+        <p>Recursos para aprender, investigar y descubrir.</p>
+    </div>
+</div>
+
+<div class="book-grid">
+    @foreach (var obra in Model)
+    {
+        <partial name="_TarjetaObra" model="obra" />
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty">
+        <h2>No encontramos obras</h2>
+        <p>Prueba con otra búsqueda.</p>
+    </div>
+}

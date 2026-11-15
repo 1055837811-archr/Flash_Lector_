@@ -1,0 +1,96 @@
+﻿@using Flash_Lector.Models
+@model Obra
+@{
+    ViewData["Title"] = Model.Titulo;
+    var temas = new[] { "cover-blue", "cover-orange", "cover-night", "cover-gold" };
+}
+
+<a class="back" asp-action="Index">Volver al catálogo</a>
+
+<section class="detail">
+    <div class="detail-cover @temas[Model.Id % temas.Length]">
+        <span>@Model.Formato</span>
+        <i class="bolt" aria-hidden="true"></i>
+        <b>@Model.Titulo</b>
+    </div>
+
+    <div>
+        <span class="eyebrow">@Model.Categoria.Nombre · @Model.Formato</span>
+        <h1>@Model.Titulo</h1>
+        <p class="author">Por @Model.NombreAutor</p>
+        <p>@Model.Sinopsis</p>
+
+        <dl>
+            <div>
+                <dt>Páginas</dt>
+                <dd>@Model.Paginas</dd>
+            </div>
+            <div>
+                <dt>Formato</dt>
+                <dd>@Model.Formato</dd>
+            </div>
+        </dl>
+
+        <div class="actions">
+            @if (!string.IsNullOrEmpty(Model.RutaArchivo))
+            {
+                <a class="button" asp-controller="Lectura" asp-action="Leer" asp-route-id="@Model.Id">Leer ahora</a>
+            }
+
+            <form asp-controller="Favoritos" asp-action="Alternar" method="post">
+                <input type="hidden" name="obraId" value="@Model.Id">
+                <button class="button secondary">
+                    @((ViewBag.EsFavorito as bool?) == true ? "★ En favoritos · Quitar" : "☆ Añadir a favoritos")
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<h2>Reseñas de lectores</h2>
+<div class="reviews">
+    @foreach (var resena in Model.Resenas)
+    {
+        <article>
+            <b>@resena.Usuario.Nombres</b>
+            <span>@resena.Calificacion de 5</span>
+            <p>@resena.Comentario</p>
+        </article>
+    }
+</div>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <form class="review-form" asp-controller="Resenas" asp-action="Crear" method="post">
+        <h3>Deja tu reseña</h3>
+
+        @if (TempData["ErrorResena"] is string errorResena)
+        {
+            <div class="validation">@errorResena</div>
+        }
+
+        <input type="hidden" name="obraId" value="@Model.Id">
+
+        <label>
+            Calificación
+            <select name="calificacion">
+                <option value="5">5 · Excelente</option>
+                <option value="4">4 · Muy buena</option>
+                <option value="3">3 · Buena</option>
+                <option value="2">2 · Regular</option>
+                <option value="1">1 · Mala</option>
+            </select>
+        </label>
+
+        <label>
+            Comentario
+            <textarea name="comentario" maxlength="1000" required></textarea>
+        </label>
+
+        <button class="button">Publicar reseña</button>
+    </form>
+}
+else
+{
+    <p><a asp-controller="Cuenta" asp-action="InicioSesion"><b>Ingresa</b></a> para dejar una reseña.</p>
+}

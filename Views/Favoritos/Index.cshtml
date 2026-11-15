@@ -1,0 +1,28 @@
+﻿@using Flash_Lector.Models
+@model IReadOnlyCollection<Favorito>
+@{
+    ViewData["Title"] = "Favoritos";
+}
+
+<div class="page-head">
+    <div>
+        <span class="eyebrow">Tu colección</span>
+        <h1>Favoritos</h1>
+        <p>Obras guardadas para leer después.</p>
+    </div>
+</div>
+
+<div class="book-grid">
+    @foreach (var item in Model)
+    {
+        <partial name="_TarjetaObra" model="item.Obra" />
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="empty">
+        <h2>Aún no tienes favoritos</h2>
+        <p>Guarda una obra y aparecerá aquí.</p>
+    </div>
+}
