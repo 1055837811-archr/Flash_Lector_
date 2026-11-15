@@ -1,8 +1,54 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using Flash_Lector.Models
+@model IReadOnlyCollection<Obra>
+@{
+    ViewData["Title"] = "Inicio";
+    var continuar = ViewBag.Continuar as ProgresoLectura;
+    var nombres = ViewBag.Nombres as string;
+    var hoy = DateTime.Now.ToString("dddd, d 'de' MMMM", new System.Globalization.CultureInfo("es-CO"));
+    var saludo = string.IsNullOrWhiteSpace(nombres) ? "Hola." : $"Hola, {nombres}.";
+    var temas = new[] { "cover-blue", "cover-orange", "cover-night", "cover-gold" };
+}
+<header class="greeting">
+    <span class="date">@hoy</span>
+    <h1>@saludo ¿Qué quieres leer hoy?</h1>
+</header>
+
+@if (continuar is not null)
+{
+    var porcentaje = continuar.Obra.Paginas > 0 ? Math.Min(100, continuar.PaginaActual * 100 / continuar.Obra.Paginas) : 0;
+    <section class="continue">
+        <div class="thumb @temas[continuar.Obra.Id % temas.Length]"><svg class="bolt-art" aria-hidden="true"><use href="#i-bolt" /></svg></div>
+        <div class="continue-body">
+            <small>Continúa leyendo</small>
+            <h2>@continuar.Obra.Titulo</h2>
+            <p>@continuar.Obra.NombreAutor · Página @continuar.PaginaActual de @continuar.Obra.Paginas</p>
+            <div class="progress" role="progressbar" aria-valuenow="@porcentaje" aria-valuemin="0" aria-valuemax="100"><i style="width:@(porcentaje)%"></i></div>
+        </div>
+        <a class="button big" asp-controller="Lectura" asp-action="Leer" asp-route-id="@continuar.Obra.Id">Continuar</a>
+    </section>
+}
+else
+{
+    <section class="continue">
+        <div class="continue-body">
+            <small>Empieza hoy</small>
+            <h2>Elige tu próxima lectura</h2>
+            <p>Cuando empieces una obra, aquí podrás retomarla en la misma página donde la dejaste.</p>
+        </div>
+        <a class="button big" asp-controller="Catalogo" asp-action="Index">Explorar catálogo</a>
+    </section>
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="section-title">
+    <h2><svg class="icon accent"><use href="#i-bolt" /></svg>Tendencias</h2>
+    <div class="arrows">
+        <button type="button" class="icon-btn" data-scroll="-1" data-target="trends" aria-label="Anterior"><svg class="icon"><use href="#i-left" /></svg></button>
+        <button type="button" class="icon-btn" data-scroll="1" data-target="trends" aria-label="Siguiente"><svg class="icon"><use href="#i-right" /></svg></button>
+    </div>
+</div>
+<div class="carousel" id="trends">
+    @foreach (var obra in Model)
+    {
+        <partial name="_TarjetaObra" model="obra" />
+    }
 </div>

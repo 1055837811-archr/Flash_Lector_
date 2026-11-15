@@ -1,25 +1,32 @@
+using System.Security.Claims;
+using Flash_Lector.Data;
 using Flash_Lector.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 
-namespace Flash_Lector.Controllers
+namespace Flash_Lector.Controllers;
+
+public class HomeController(ContextBaseDatos bd) : Controller
 {
-    public class HomeController : Controller
+    public async Task<IActionResult> Index()
     {
-        public IActionResult Index()
+        ViewBag.IdsFavoritos = await bd.IdsFavoritosAsync(User);
+
+        var texto = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (int.TryParse(texto, out var usuarioId))
         {
-            return View();
+            ViewBag.Continuar = await bd.ProgresosLectura
+                .Include(x => x.Obra).ThenInclude(o => o.Categoria)
+                .Where(x => x.UsuarioId == usuarioId && x.Obra.Estado == EstadoPublicacion.Publicada)
+                .OrderByDescending(x => x.FechaActualizacion).FirstOrDefaultAsync();
+            ViewBag.Nombres = await bd.Usuarios.Where(u => u.Id == usuarioId).Select(u => u.Nombres).FirstOrDefaultAsync();
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        var obras = await bd.Obras.Include(x => x.Categoria)
+            .Where(x => x.Estado == EstadoPublicacion.Publicada)
+            .OrderByDescending(x => x.FechaPublicacion).Take(12).ToListAsync();
+        return View(obras);
     }
+
+    public IActionResult Error() => View();
 }
