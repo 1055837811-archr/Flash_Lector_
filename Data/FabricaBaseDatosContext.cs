@@ -8,7 +8,7 @@ public class FabricaBaseDatosContext : IDesignTimeDbContextFactory<ContextBaseDa
     public ContextBaseDatos CreateDbContext(string[] args)
     {
         var opciones = new DbContextOptionsBuilder<ContextBaseDatos>()
-            .UseSqlServer("Server=LISBETH\\SQLEXPRESS;Database=BibliotecaWebDb;Trusted_Connection=True;TrustServerCertificate=True;")
+            .UseSqlServer("Server=LISBETH\\SQLEXPRESS;Database=FlashLectorDb;Trusted_Connection=True;TrustServerCertificate=True;")
             .Options;
         return new ContextBaseDatos(opciones);
     }
