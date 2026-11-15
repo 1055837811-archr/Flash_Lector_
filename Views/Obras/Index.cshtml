@@ -1,0 +1,29 @@
+﻿@using Flash_Lector.Models
+@model IReadOnlyCollection<Obra>
+@{
+    ViewData["Title"] = "Mis obras";
+}
+<div class="page-head">
+    <div><span class="eyebrow">Panel de autor</span><h1>Mis obras</h1><p>Administra tus publicaciones y su estado de revisión.</p></div>
+    @if (User.IsInRole("Creador") || User.IsInRole("Administrador"))
+    {
+        <a class="button" asp-action="Crear">Subir obra</a>
+    }
+    else
+    {
+        <form asp-controller="SolicitudesRol" asp-action="Crear" method="post"><button class="button secondary">Solicitar rol de autor</button></form>
+    }
+</div>
+<div class="work-list">
+    @foreach (var obra in Model)
+    {
+        <article class="work-row">
+            <div><small>@obra.Estado</small><h3>@obra.Titulo</h3><p>@obra.Categoria.Nombre · @obra.Formato</p></div>
+            <div class="actions"><a class="button secondary" asp-action="Editar" asp-route-id="@obra.Id">Editar</a><form asp-action="Eliminar" method="post"><input type="hidden" name="id" value="@obra.Id"><button class="button secondary">Eliminar</button></form></div>
+        </article>
+    }
+</div>
+@if (!Model.Any())
+{
+    <div class="empty"><h2>Aún no has subido obras</h2><p>Cuando publiques una obra, su estado aparecerá aquí.</p></div>
+}

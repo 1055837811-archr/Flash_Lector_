@@ -1,0 +1,14 @@
+﻿@using Flash_Lector.ViewModels
+@model ObraFormularioViewModel
+@{
+    ViewData["Title"] = "Subir obra";
+}
+
+<section class="form-panel">
+    <span class="eyebrow">Nueva publicación</span>
+    <h1>Subir obra</h1>
+
+    <form asp-action="Crear" method="post" enctype="multipart/form-data">
+        <partial name="_Formulario" model="Model" />
+    </form>
+</section>

@@ -1,0 +1,45 @@
+﻿@using Flash_Lector.Models
+@using Flash_Lector.ViewModels
+@model ObraFormularioViewModel
+
+<div asp-validation-summary="ModelOnly" class="validation"></div>
+
+<label>
+    Título
+    <input asp-for="Titulo">
+</label>
+
+<label>
+    Autor
+    <input asp-for="NombreAutor">
+</label>
+
+<label>
+    Sinopsis
+    <textarea asp-for="Sinopsis"></textarea>
+</label>
+
+<div class="field-row">
+    <label>
+        Páginas
+        <input asp-for="Paginas">
+    </label>
+
+    <label>
+        Formato
+        <select asp-for="Formato" asp-items="Html.GetEnumSelectList<FormatoObra>()"></select>
+    </label>
+</div>
+
+<label>
+    Categoría
+    <select asp-for="CategoriaId" asp-items="ViewBag.Categorias"></select>
+</label>
+
+<label>
+    Archivo (.pdf, .epub o .cbz, máx. 25 MB)
+    <input asp-for="Archivo" type="file" accept=".pdf,.epub,.cbz">
+    <span asp-validation-for="Archivo" class="validation"></span>
+</label>
+
+<button class="button">Guardar y enviar a revisión</button>
