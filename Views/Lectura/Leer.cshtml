@@ -1,0 +1,42 @@
+﻿@using Flash_Lector.Models
+@model Obra
+@{
+    ViewData["Title"] = Model.Titulo;
+
+    var paginaActual = (int)ViewBag.Pagina;
+    var esPdf = Model.RutaArchivo!.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+}
+
+<a class="back" asp-controller="Catalogo" asp-action="Detalle" asp-route-id="@Model.Id">Volver a la obra</a>
+
+<div class="page-head">
+    <div>
+        <span class="eyebrow">@Model.Categoria.Nombre · @Model.Formato</span>
+        <h1>@Model.Titulo</h1>
+        <p>Por @Model.NombreAutor</p>
+    </div>
+</div>
+
+@if (esPdf)
+{
+    <iframe class="reader" src="@Model.RutaArchivo#page=@paginaActual" title="@Model.Titulo"></iframe>
+}
+else
+{
+    <div class="empty">
+        <h2>Este formato se lee en una aplicación externa</h2>
+        <p>Descarga el archivo @Model.Formato y ábrelo con tu lector preferido.</p>
+        <a class="button" href="@Model.RutaArchivo" download>Descargar @Model.Formato</a>
+    </div>
+}
+
+<form asp-controller="Lectura" asp-action="Guardar" method="post" class="progress-form">
+    <input type="hidden" name="obraId" value="@Model.Id">
+
+    <label>
+        Página actual
+        <input type="number" name="paginaActual" min="1" max="@Model.Paginas" value="@paginaActual">
+    </label>
+
+    <button class="button secondary">Guardar progreso</button>
+</form>
