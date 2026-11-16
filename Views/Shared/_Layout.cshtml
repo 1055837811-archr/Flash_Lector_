@@ -1,5 +1,4 @@
-﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Entorno
-@{
+﻿@{
     var controlador = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var categoria = Context.Request.Query["categoria"].ToString();
     var sesionIniciada = User.Identity?.IsAuthenticated == true;
@@ -78,9 +77,9 @@
         <main>@RenderBody()</main>
     </div>
 
-    @if (Entorno.IsDevelopment())
+    @if (User.IsInRole("Administrador") || User.HasClaim("PuedeCambiarRol", "true"))
     {
-        <nav class="flows" aria-label="Flujos de prueba (solo desarrollo)">
+        <nav class="flows" aria-label="Cambio de rol (solo administrador)">
             <span>Flujos</span>
             <a asp-controller="Dev" asp-action="Como" asp-route-rol="acceso">Acceso</a>
             <a asp-controller="Dev" asp-action="Como" asp-route-rol="lector">Lector</a>
