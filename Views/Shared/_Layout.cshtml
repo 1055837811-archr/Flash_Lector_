@@ -1,4 +1,5 @@
-﻿@{
+﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Entorno
+@{
     var controlador = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var categoria = Context.Request.Query["categoria"].ToString();
     var sesionIniciada = User.Identity?.IsAuthenticated == true;
@@ -77,6 +78,16 @@
         <main>@RenderBody()</main>
     </div>
 
+    @if (Entorno.IsDevelopment())
+    {
+        <nav class="flows" aria-label="Flujos de prueba (solo desarrollo)">
+            <span>Flujos</span>
+            <a asp-controller="Dev" asp-action="Como" asp-route-rol="acceso">Acceso</a>
+            <a asp-controller="Dev" asp-action="Como" asp-route-rol="lector">Lector</a>
+            <a asp-controller="Dev" asp-action="Como" asp-route-rol="creador">Creador</a>
+            <a asp-controller="Dev" asp-action="Como" asp-route-rol="admin">Administrador</a>
+        </nav>
+    }
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
