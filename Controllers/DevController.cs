@@ -7,12 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Flash_Lector.Controllers;
 
-public class DevController(ContextBaseDatos bd, IWebHostEnvironment entorno) : Controller
+public class DevController(ContextBaseDatos bd) : Controller
 {
-    // Atajo de pruebas: entra como uno de los usuarios de demostración (solo en Development)
+    // Cambio de rol para pruebas: solo lo puede usar un administrador
+    // (o quien ya entró por este mismo atajo, para poder volver).
     public async Task<IActionResult> Como(string rol)
     {
-        if (!entorno.IsDevelopment()) return NotFound();
+        var autorizado = User.IsInRole("Administrador") || User.HasClaim("PuedeCambiarRol", "true");
+        if (!autorizado) return NotFound();
 
         if (rol == "acceso")
         {
@@ -37,7 +39,8 @@ public class DevController(ContextBaseDatos bd, IWebHostEnvironment entorno) : C
             new(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
             new(ClaimTypes.Name, $"{usuario.Nombres} {usuario.Apellidos}"),
             new(ClaimTypes.Email, usuario.Correo),
-            new(ClaimTypes.Role, usuario.Rol)
+            new(ClaimTypes.Role, usuario.Rol),
+            new("PuedeCambiarRol", "true")
         };
         var identidad = new ClaimsIdentity(datos, CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identidad));
