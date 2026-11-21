@@ -23,7 +23,7 @@
         </section>
 
         <section class="access-panel">
-            <form asp-action="InicioSesion" method="post" class="access-card">
+            <form asp-action="InicioSesion" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" class="access-card">
                 <span class="eyebrow">Te damos la bienvenida</span>
                 <h2>Ingresa a tu cuenta</h2>
 

@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace Flash_Lector.Data;
 
 public static class InicializadorBaseDatos
@@ -11,6 +10,7 @@ public static class InicializadorBaseDatos
     {
         var bd = servicios.GetRequiredService<ContextBaseDatos>();
         var encriptador = servicios.GetRequiredService<IPasswordHasher<Usuario>>();
+        var configuracion = servicios.GetRequiredService<IConfiguration>();
 
         // Si existen migraciones se aplican; si todavía no se generaron, se crea el esquema directamente
         // para que el proyecto abra y corra desde el primer intento.
@@ -19,8 +19,12 @@ public static class InicializadorBaseDatos
         else
             await bd.Database.EnsureCreatedAsync();
 
-        // Usuario administrador de desarrollo (cámbielo en producción).
-        await CrearUsuarioAsync(bd, encriptador, "admin@flashlector.local", "Admin12345!", "Admin", "Flash Lector", "Administrador");
+        // El administrador inicial sale de la configuración (appsettings), no del código.
+        // Si falta el correo o la contraseña, no se crea.
+        var correoAdmin = configuracion["AdministradorInicial:Correo"];
+        var contrasenaAdmin = configuracion["AdministradorInicial:Contrasena"];
+        if (!string.IsNullOrWhiteSpace(correoAdmin) && !string.IsNullOrWhiteSpace(contrasenaAdmin))
+            await CrearUsuarioAsync(bd, encriptador, correoAdmin.Trim().ToLowerInvariant(), contrasenaAdmin, "Admin", "Flash Lector", "Administrador");
 
         // Usuarios de demostración para probar cada rol (solo se crean en Development).
         if (servicios.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
