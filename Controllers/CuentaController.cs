@@ -4,46 +4,69 @@ using Flash_Lector.Models;
 using Flash_Lector.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Flash_Lector.Controllers;
 
+// Inyección de dependencias: el contexto de la base de datos y el encriptador de contraseñas
 public class CuentaController(ContextBaseDatos bd, IPasswordHasher<Usuario> encriptador) : Controller
 {
+    [AllowAnonymous] // permite entrar sin haber iniciado sesión
     [HttpGet]
-    public IActionResult InicioSesion() => View();
-
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> InicioSesion(InicioSesionViewModel modelo)
+    public IActionResult InicioSesion(string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl; // guarda la página a la que quería entrar
+        return View();
+    }
+
+    [AllowAnonymous]
+    [HttpPost, ValidateAntiForgeryToken] // ValidateAntiForgeryToken protege el formulario contra ataques CSRF
+    public async Task<IActionResult> InicioSesion(InicioSesionViewModel modelo, string? returnUrl = null)
+    {
+        ViewData["ReturnUrl"] = returnUrl;
+
         if (!ModelState.IsValid)
             return View(modelo);
 
-        var usuario = await bd.Usuarios.FirstOrDefaultAsync(x => x.Correo == modelo.Correo);
+        // Se normaliza el correo: sin espacios y en minúsculas
+        var correo = modelo.Correo.Trim().ToLowerInvariant();
 
-        if (usuario != null &&
-            encriptador.VerifyHashedPassword(usuario, usuario.ContrasenaHash, modelo.Contrasena) != PasswordVerificationResult.Failed)
+        var usuario = await bd.Usuarios.SingleOrDefaultAsync(x => x.Correo == correo);
+
+        // Si el usuario no existe o la contraseña no coincide, las credenciales son incorrectas
+        if (usuario is null ||
+            encriptador.VerifyHashedPassword(usuario, usuario.ContrasenaHash, modelo.Contrasena) == PasswordVerificationResult.Failed)
         {
-            await CrearCookieAsync(usuario, modelo.Recordarme);
-            return RedirectToAction("Index", "Home");
+            ModelState.AddModelError(string.Empty, "Correo o contraseña incorrectos.");
+            return View(modelo);
         }
 
-        ModelState.AddModelError("", "Correo o contraseña incorrectos.");
-        return View(modelo);
+        await CrearCookieAsync(usuario, modelo.Recordarme);
+
+        // Si venía de una página protegida, vuelve a ella (solo direcciones del mismo sitio)
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            return Redirect(returnUrl);
+
+        return RedirectToAction("Index", "Home");
     }
 
+    [AllowAnonymous]
     [HttpGet]
     public IActionResult Registro() => View();
 
+    [AllowAnonymous]
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Registro(RegistroViewModel modelo)
     {
         if (!ModelState.IsValid)
             return View(modelo);
 
-        if (await bd.Usuarios.AnyAsync(x => x.Correo == modelo.Correo))
+        var correo = modelo.Correo.Trim().ToLowerInvariant();
+
+        if (await bd.Usuarios.AnyAsync(x => x.Correo == correo))
         {
             ModelState.AddModelError("", "Ya existe una cuenta con ese correo.");
             return View(modelo);
@@ -51,9 +74,9 @@ public class CuentaController(ContextBaseDatos bd, IPasswordHasher<Usuario> encr
 
         var usuario = new Usuario
         {
-            Nombres = modelo.Nombres,
-            Apellidos = modelo.Apellidos,
-            Correo = modelo.Correo,
+            Nombres = modelo.Nombres.Trim(),
+            Apellidos = modelo.Apellidos.Trim(),
+            Correo = correo,
             Rol = "Lector"
         };
         usuario.ContrasenaHash = encriptador.HashPassword(usuario, modelo.Contrasena);
@@ -72,10 +95,10 @@ public class CuentaController(ContextBaseDatos bd, IPasswordHasher<Usuario> encr
         return RedirectToAction("Index", "Home");
     }
 
-    [HttpGet]
+    [AllowAnonymous]
     public IActionResult AccesoDenegado() => View();
 
-    // Crea la cookie de sesión con el id, el nombre, el correo y el rol del usuario.
+    // Los claims guardan en la cookie la información importante del usuario: id, nombre, correo y rol
     private async Task CrearCookieAsync(Usuario usuario, bool recordarme)
     {
         var datos = new List<Claim>
@@ -87,11 +110,14 @@ public class CuentaController(ContextBaseDatos bd, IPasswordHasher<Usuario> encr
         };
 
         var identidad = new ClaimsIdentity(datos, CookieAuthenticationDefaults.AuthenticationScheme);
-        var propiedades = new AuthenticationProperties { IsPersistent = recordarme };
 
         await HttpContext.SignInAsync(
             CookieAuthenticationDefaults.AuthenticationScheme,
             new ClaimsPrincipal(identidad),
-            propiedades);
+            new AuthenticationProperties
+            {
+                IsPersistent = recordarme, // la sesión sigue abierta aunque se cierre el navegador
+                AllowRefresh = true        // la sesión se renueva sola mientras el usuario esté activo
+            });
     }
 }
